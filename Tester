@@ -1,0 +1,152 @@
+-- Run this in a LocalScript inside StarterPlayerScripts
+
+-- Colors
+local red = Color3.fromRGB(200, 0, 0)
+local black = Color3.fromRGB(10, 10, 10)
+local white = Color3.new(1, 1, 1)
+
+-- Ensure GUI persists across resets
+game:GetService("StarterGui"):SetCore("ResetButtonCallback", true)
+
+-- Create GUI
+local player = game.Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "MicroExecutor"
+gui.ResetOnSpawn = false  -- persists after death
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Toggle Button
+local toggle = Instance.new("TextButton", gui)
+toggle.Size = UDim2.new(0, 16, 0, 16)
+toggle.Position = UDim2.new(0, 4, 0, 4)
+toggle.Text = "+"
+toggle.BackgroundColor3 = red
+toggle.TextColor3 = white
+toggle.Font = Enum.Font.SourceSansBold
+toggle.TextSize = 12
+
+-- Main Frame
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 100, 0, 100)
+main.Position = UDim2.new(0, 24, 0, 4)
+main.BackgroundColor3 = black
+main.Visible = true
+main.Active = true
+main.Draggable = true
+
+-- Tabs
+local names = {"H", "E", "S", "U", "C"} -- Short names for tabs
+local tabs, currentTab = {}, nil
+
+for i, short in ipairs(names) do
+	local btn = Instance.new("TextButton", main)
+	btn.Size = UDim2.new(0, 18, 0, 14)
+	btn.Position = UDim2.new(0, (i - 1) * 20, 0, 0)
+	btn.Text = short
+	btn.TextSize = 9
+	btn.BackgroundColor3 = red
+	btn.TextColor3 = white
+
+	local tab = Instance.new("Frame", main)
+	tab.Size = UDim2.new(1, -4, 1, -18)
+	tab.Position = UDim2.new(0, 2, 0, 16)
+	tab.BackgroundTransparency = 1
+	tab.Visible = false
+	tabs[short] = tab
+
+	btn.MouseButton1Click:Connect(function()
+		if currentTab then currentTab.Visible = false end
+		tab.Visible = true
+		currentTab = tab
+	end)
+end
+
+-- Home Tab: FPS
+local fps = Instance.new("TextLabel", tabs["H"])
+fps.Size = UDim2.new(1, 0, 0, 14)
+fps.TextColor3 = red
+fps.BackgroundTransparency = 1
+fps.TextScaled = true
+fps.Text = "FPS: 0"
+
+local frames, last = 0, tick()
+game:GetService("RunService").RenderStepped:Connect(function()
+	frames += 1
+	if tick() - last >= 1 then
+		fps.Text = "FPS: " .. frames
+		frames, last = 0, tick()
+	end
+end)
+
+-- Editor Tab
+local box = Instance.new("TextBox", tabs["E"])
+box.Size = UDim2.new(1, 0, 0, 26)
+box.Text = "--code"
+box.ClearTextOnFocus = false
+box.MultiLine = true
+box.TextSize = 9
+box.Font = Enum.Font.Code
+box.TextColor3 = white
+box.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+
+local function smallBtn(txt, y, fn)
+	local b = Instance.new("TextButton", tabs["E"])
+	b.Size = UDim2.new(1, 0, 0, 12)
+	b.Position = UDim2.new(0, 0, 0, y)
+	b.Text = txt
+	b.BackgroundColor3 = red
+	b.TextColor3 = white
+	b.TextSize = 9
+	b.MouseButton1Click:Connect(fn)
+end
+
+smallBtn("Run", 28, function() pcall(function() loadstring(box.Text)() end) end)
+smallBtn("Clear", 42, function() box.Text = "" end)
+smallBtn("Hide", 56, function() box.Visible = not box.Visible end)
+
+-- Serverhop Tab
+local hop = Instance.new("TextButton", tabs["S"])
+hop.Size = UDim2.new(1, 0, 0, 14)
+hop.Text = "Hop"
+hop.BackgroundColor3 = red
+hop.TextColor3 = white
+hop.TextSize = 9
+hop.MouseButton1Click:Connect(function()
+	game:GetService("TeleportService"):Teleport(game.PlaceId, player)
+end)
+
+local rejoin = hop:Clone()
+rejoin.Parent = tabs["S"]
+rejoin.Position = UDim2.new(0, 0, 0, 16)
+rejoin.Text = "Rejoin"
+rejoin.MouseButton1Click:Connect(function()
+	game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, player)
+end)
+
+-- Script Hub Tab
+local hub = Instance.new("TextButton", tabs["U"])
+hub.Size = UDim2.new(1, 0, 0, 14)
+hub.Text = "Hub"
+hub.BackgroundColor3 = red
+hub.TextColor3 = white
+hub.TextSize = 9
+hub.MouseButton1Click:Connect(function()
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/godifreal/MugenUiOp/refs/heads/main/2", true))()
+end)
+
+-- Credits Tab
+local cred = Instance.new("TextLabel", tabs["C"])
+cred.Size = UDim2.new(1, 0, 0, 14)
+cred.Text = "By TheMugenKing"
+cred.BackgroundTransparency = 1
+cred.TextColor3 = red
+cred.TextScaled = true
+
+-- Toggle Visibility
+toggle.MouseButton1Click:Connect(function()
+	main.Visible = not main.Visible
+end)
+
+-- Default to Home
+tabs["H"].Visible = true
+currentTab = tabs["H"]
