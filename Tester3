@@ -17,7 +17,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 -- Toggle Button
 local toggle = Instance.new("TextButton", gui)
-toggle.Size = UDim2.new(0, 49, 0, 49)
+toggle.Size = UDim2.new(0, 39, 0, 39)
 toggle.Position = UDim2.new(0, 4, 0, 4)
 toggle.Text = "+"
 toggle.BackgroundColor3 = red
